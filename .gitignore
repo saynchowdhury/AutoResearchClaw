@@ -85,6 +85,8 @@ config_*.yaml
 
 # Frontend (local dev only)
 frontend/
+web/node_modules/
+web/.next/
 
 # Test outputs and run logs (local only)
 test_outputs*/

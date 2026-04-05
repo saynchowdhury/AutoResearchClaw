@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "categories": {
+    "ML_Research": {
+      "description": "Core autonomous research and ML skills",
+      "path": "ML_Research/"
+    },
+    "UI_UX_Web": {
+      "description": "Frontend, UI/UX, and real-time streaming skills",
+      "path": "UI_UX_Web/"
+    }
+  }
+}

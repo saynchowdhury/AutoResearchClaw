@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: autoresearch-claw-db
+    environment:
+      POSTGRES_USER: autoresearch
+      POSTGRES_PASSWORD: research123
+      POSTGRES_DB: autoresearch
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autoresearch"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Task Queue & Events
+  redis:
+    image: redis:7-alpine
+    container_name: autoresearch-claw-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # .NET API Backend
+  api:
+    build:
+      context: .
+      dockerfile: src/AutoResearchClaw.Api/Dockerfile
+    container_name: autoresearch-claw-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=autoresearch;Username=autoresearch;Password=research123"
+      ConnectionStrings__Redis: "redis:6379"
+    ports:
+      - "5000:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - artifacts:/artifacts
+
+  # Background Worker for Long-Running Tasks
+  worker:
+    build:
+      context: .
+      dockerfile: src/AutoResearchClaw.Worker/Dockerfile
+    container_name: autoresearch-claw-worker
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=autoresearch;Username=autoresearch;Password=research123"
+      ConnectionStrings__Redis: "redis:6379"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - artifacts:/artifacts
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # Next.js Frontend
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: autoresearch-claw-web
+    environment:
+      NEXT_PUBLIC_API_URL: http://api:5000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: autoresearch-claw-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+      - web
+
+volumes:
+  postgres_data:
+  redis_data:
+  artifacts:

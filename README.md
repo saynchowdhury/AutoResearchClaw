@@ -551,6 +551,11 @@ openclaw_bridge:
 
 </details>
 
+## 🚧 What's NOT done yet
+1. Worker has stub logic (just delays, no real AI/research pipeline)
+2. No actual LLM API integration
+3. Run processing happens inline in API, not via worker queue
+
 ---
 
 ## 🙏 Acknowledgments

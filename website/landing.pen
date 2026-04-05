@@ -1,0 +1,1011 @@
+{
+  "version": "2.10",
+  "children": [
+    {
+      "id": "main-container",
+      "type": "frame",
+      "name": "Main Container",
+      "layout": "vertical",
+      "width": 1280,
+      "height": "fit_content",
+      "fill": "#0A0A0AFF",
+      "alignItems": "center",
+      "children": [
+        {
+          "id": "nav",
+          "type": "frame",
+          "name": "Navigation",
+          "layout": "horizontal",
+          "width": "fill_container",
+          "height": 64,
+          "fill": "#0A0A0AFF",
+          "padding": [16, 32],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "logo-group",
+              "type": "frame",
+              "layout": "horizontal",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "logo-icon",
+                  "type": "rectangle",
+                  "width": 36,
+                  "height": 36,
+                  "fill": "#A855F7FF",
+                  "cornerRadius": 8
+                },
+                {
+                  "id": "logo-text",
+                  "type": "text",
+                  "textGrowth": "auto",
+                  "content": "AutoResearchClaw",
+                  "fontFamily": "Playfair Display",
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "fill": "#FFFFFFFF"
+                }
+              ]
+            },
+            {
+              "id": "nav-links",
+              "type": "frame",
+              "layout": "horizontal",
+              "gap": 32,
+              "children": [
+                { "id": "link-home", "type": "text", "textGrowth": "auto", "content": "Home", "fontFamily": "Geist", "fontSize": 14, "fill": "#FFFFFFFF" },
+                { "id": "link-pipeline", "type": "text", "textGrowth": "auto", "content": "Pipeline", "fontFamily": "Geist", "fontSize": 14, "fill": "#A1A1AAFF" },
+                { "id": "link-features", "type": "text", "textGrowth": "auto", "content": "Features", "fontFamily": "Geist", "fontSize": 14, "fill": "#A1A1AAFF" },
+                { "id": "link-papers", "type": "text", "textGrowth": "auto", "content": "Papers", "fontFamily": "Geist", "fontSize": 14, "fill": "#A1A1AAFF" },
+                { "id": "link-started", "type": "text", "textGrowth": "auto", "content": "Get Started", "fontFamily": "Geist", "fontSize": 14, "fill": "#A1A1AAFF" }
+              ]
+            },
+            {
+              "id": "github-btn",
+              "type": "frame",
+              "layout": "horizontal",
+              "width": "fit_content",
+              "height": 36,
+              "gap": 8,
+              "padding": [16, 12],
+              "fill": "#FFFFFFFF",
+              "cornerRadius": 9999,
+              "alignItems": "center",
+              "children": [
+                { "id": "gh-icon", "type": "text", "textGrowth": "auto", "content": "⎔", "fontSize": 16, "fill": "#0A0A0AFF" },
+                { "id": "gh-text", "type": "text", "textGrowth": "auto", "content": "GitHub", "fontFamily": "Geist", "fontSize": 13, "fontWeight": "600", "fill": "#0A0A0AFF" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "hero",
+          "type": "frame",
+          "name": "Hero Section",
+          "layout": "vertical",
+          "width": "fill_container",
+          "height": "fit_content",
+          "padding": [80, 48, 96],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "hero-badge",
+              "type": "frame",
+              "layout": "horizontal",
+              "width": "fit_content",
+              "height": "fit_content",
+              "gap": 8,
+              "padding": [8, 16],
+              "fill": "#1A1A1AFF",
+              "cornerRadius": 9999,
+              "alignItems": "center",
+              "children": [
+                { "id": "badge-dot", "type": "ellipse", "width": 8, "height": 8, "fill": "#22C55E" },
+                { "id": "badge-text", "type": "text", "textGrowth": "auto", "content": "23-Stage Autonomous Pipeline", "fontFamily": "IBM Plex Mono", "fontSize": 12, "fill": "#A1A1AAFF" }
+              ]
+            },
+            {
+              "id": "hero-title-group",
+              "type": "frame",
+              "layout": "vertical",
+              "width": "fill_container",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "hero-title",
+                  "type": "text",
+                  "textGrowth": "fixed-width",
+                  "width": 800,
+                  "content": "Chat an idea.",
+                  "fontFamily": "Playfair Display",
+                  "fontSize": 64,
+                  "fontWeight": "700",
+                  "lineHeight": 1.1,
+                  "textAlign": "center",
+                  "fill": "#FFFFFFFF"
+                },
+                {
+                  "id": "hero-title-accent",
+                  "type": "text",
+                  "textGrowth": "fixed-width",
+                  "width": 800,
+                  "content": "Get a paper.",
+                  "fontFamily": "Playfair Display",
+                  "fontSize": 64,
+                  "fontWeight": "700",
+                  "lineHeight": 1.1,
+                  "textAlign": "center",
+                  "fill": "#A855F7FF"
+                }
+              ]
+            },
+            {
+              "id": "hero-tagline",
+              "type": "text",
+              "textGrowth": "fixed-width",
+              "width": 600,
+              "content": "A fully autonomous research pipeline that transforms your research topic into a publication-ready paper — with real experiments, GPU-accelerated code, and verified citations.",
+              "fontFamily": "Geist",
+              "fontSize": 18,
+              "textAlign": "center",
+              "lineHeight": 1.6,
+              "fill": "#A1A1AAFF",
+              "marginTop": 24
+            },
+            {
+              "id": "hero-actions",
+              "type": "frame",
+              "layout": "horizontal",
+              "gap": 16,
+              "marginTop": 32,
+              "children": [
+                {
+                  "id": "btn-primary",
+                  "type": "frame",
+                  "layout": "horizontal",
+                  "width": "fit_content",
+                  "height": 48,
+                  "gap": 8,
+                  "padding": [24, 20],
+                  "fill": "#A855F7FF",
+                  "cornerRadius": 9999,
+                  "alignItems": "center",
+                  "children": [
+                    { "id": "btn-p-arrow", "type": "text", "textGrowth": "auto", "content": "↑", "fontSize": 14, "fill": "#FFFFFFFF" },
+                    { "id": "btn-p-text", "type": "text", "textGrowth": "auto", "content": "Get Started", "fontFamily": "Geist", "fontSize": 15, "fontWeight": "600", "fill": "#FFFFFFFF" }
+                  ]
+                },
+                {
+                  "id": "btn-secondary",
+                  "type": "frame",
+                  "layout": "horizontal",
+                  "width": "fit_content",
+                  "height": 48,
+                  "padding": [24, 20],
+                  "fill": "none",
+                  "stroke": { "align": "center", "thickness": 1.5, "fill": "#A855F7FF" },
+                  "cornerRadius": 9999,
+                  "alignItems": "center",
+                  "children": [
+                    { "id": "btn-s-text", "type": "text", "textGrowth": "auto", "content": "Explore Pipeline", "fontFamily": "Geist", "fontSize": 15, "fontWeight": "600", "fill": "#A855F7FF" }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "terminal-card",
+              "type": "frame",
+              "layout": "vertical",
+              "width": 560,
+              "height": "fit_content",
+              "gap": 8,
+              "padding": 20,
+              "fill": "#FFFFFFFF",
+              "cornerRadius": 12,
+              "marginTop": 48,
+              "effect": [{ "type": "shadow", "shadowType": "outer", "color": "#000000B3", "offset": { "x": 0, "y": 12 }, "blur": 24 }],
+              "children": [
+                {
+                  "id": "terminal-header",
+                  "type": "frame",
+                  "layout": "horizontal",
+                  "gap": 8,
+                  "paddingBottom": 12,
+                  "children": [
+                    { "id": "term-dot-red", "type": "ellipse", "width": 12, "height": 12, "fill": "#EF4444" },
+                    { "id": "term-dot-yellow", "type": "ellipse", "width": 12, "height": 12, "fill": "#F59E0B" },
+                    { "id": "term-dot-green", "type": "ellipse", "width": 12, "height": 12, "fill": "#22C55E" },
+                    { "id": "term-title", "type": "text", "textGrowth": "auto", "content": "researchclaw", "fontFamily": "IBM Plex Mono", "fontSize": 12, "fill": "#71717AFF", "marginLeft": 12 }
+                  ]
+                },
+                {
+                  "id": "term-body",
+                  "type": "text",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "$ python -m researchclaw run --topic \"your idea\"\n→ Initializing 23-stage pipeline...\n→ Searching literature across 3 APIs...\n→ Generating experiment code...\n→ Executing in Docker sandbox (GPU)...\n→ Writing paper in LaTeX...\n✓ Done: paper.pdf ready",
+                  "fontFamily": "Fira Code",
+                  "fontSize": 13,
+                  "lineHeight": 1.8,
+                  "fill": "#0A0A0AFF"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "stats-bar",
+          "type": "frame",
+          "layout": "horizontal",
+          "width": 1000,
+          "height": 100,
+          "gap": 48,
+          "padding": [32, 24],
+          "fill": "#1A1A1AFF",
+          "cornerRadius": 16,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "stat-1",
+              "type": "frame",
+              "layout": "vertical",
+              "alignItems": "center",
+              "children": [
+                { "id": "stat-1-val", "type": "text", "textGrowth": "auto", "content": "23", "fontFamily": "Playfair Display", "fontSize": 36, "fontWeight": "700", "fill": "#FFFFFFFF" },
+                { "id": "stat-1-label", "type": "text", "textGrowth": "auto", "content": "Autonomous Stages", "fontFamily": "IBM Plex Mono", "fontSize": 11, "fill": "#71717AFF" }
+              ]
+            },
+            {
+              "id": "stat-2",
+              "type": "frame",
+              "layout": "vertical",
+              "alignItems": "center",
+              "children": [
+                { "id": "stat-2-val", "type": "text", "textGrowth": "auto", "content": "1117", "fontFamily": "Playfair Display", "fontSize": 36, "fontWeight": "700", "fill": "#FFFFFFFF" },
+                { "id": "stat-2-label", "type": "text", "textGrowth": "auto", "content": "Tests Passing", "fontFamily": "IBM Plex Mono", "fontSize": 11, "fill": "#71717AFF" }
+              ]
+            },
+            {
+              "id": "stat-3",
+              "type": "frame",
+              "layout": "vertical",
+              "alignItems": "center",
+              "children": [
+                { "id": "stat-3-val", "type": "text", "textGrowth": "auto", "content": "3", "fontFamily": "Playfair Display", "fontSize": 36, "fontWeight": "700", "fill": "#FFFFFFFF" },
+                { "id": "stat-3-label", "type": "text", "textGrowth": "auto", "content": "Literature APIs", "fontFamily": "IBM Plex Mono", "fontSize": 11, "fill": "#71717AFF" }
+              ]
+            },
+            {
+              "id": "stat-4",
+              "type": "frame",
+              "layout": "vertical",
+              "alignItems": "center",
+              "children": [
+                { "id": "stat-4-val", "type": "text", "textGrowth": "auto", "content": "+GPU", "fontFamily": "Playfair Display", "fontSize": 36, "fontWeight": "700", "fill": "#A855F7FF" },
+                { "id": "stat-4-label", "type": "text", "textGrowth": "auto", "content": "Docker Sandbox", "fontFamily": "IBM Plex Mono", "fontSize": 11, "fill": "#71717AFF" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "pipeline-section",
+          "type": "frame",
+          "name": "Pipeline Overview",
+          "layout": "vertical",
+          "width": "fill_container",
+          "height": "fit_content",
+          "padding": [80, 48],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "section-title",
+              "type": "text",
+              "textGrowth": "fixed-width",
+              "width": 600,
+              "content": "From Idea to Paper in 23 Steps",
+              "fontFamily": "Playfair Display",
+              "fontSize": 40,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "fill": "#FFFFFFFF"
+            },
+            {
+              "id": "section-subtitle",
+              "type": "text",
+              "textGrowth": "fixed-width",
+              "width": 600,
+              "content": "Eight autonomous phases transform a research topic into a publication-ready manuscript.",
+              "fontFamily": "Geist",
+              "fontSize": 16,
+              "textAlign": "center",
+              "fill": "#A1A1AAFF",
+              "marginTop": 12
+            },
+            {
+              "id": "pipeline-grid",
+              "type": "frame",
+              "layout": "horizontal",
+              "width": "fill_container",
+              "gap": 16,
+              "marginTop": 48,
+              "justifyContent": "center",
+              "children": [
+                {
+                  "id": "phase-a",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": 280,
+                  "height": "fit_content",
+                  "gap": 12,
+                  "padding": 20,
+                  "fill": "#1A1A1AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "phase-a-letter",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "#A855F7FF",
+                      "cornerRadius": 6,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "phase-a-char", "type": "text", "textGrowth": "auto", "content": "A", "fontFamily": "Playfair Display", "fontSize": 16, "fontWeight": "700", "fill": "#FFFFFFFF" }
+                      ]
+                    },
+                    { "id": "phase-a-title", "type": "text", "textGrowth": "auto", "content": "Research Scoping", "fontFamily": "Geist", "fontSize": 15, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "phase-a-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "Topic initialization, problem decomposition, and scope definition.", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF", "lineHeight": 1.5 },
+                    {
+                      "id": "phase-a-dots",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "gap": 6,
+                      "marginTop": 12,
+                      "children": [
+                        { "id": "dot-a1", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" },
+                        { "id": "dot-a2", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "phase-b",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": 280,
+                  "height": "fit_content",
+                  "gap": 12,
+                  "padding": 20,
+                  "fill": "#1A1A1AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "phase-b-letter",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "#A855F7FF",
+                      "cornerRadius": 6,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "phase-b-char", "type": "text", "textGrowth": "auto", "content": "B", "fontFamily": "Playfair Display", "fontSize": 16, "fontWeight": "700", "fill": "#FFFFFFFF" }
+                      ]
+                    },
+                    { "id": "phase-b-title", "type": "text", "textGrowth": "auto", "content": "Literature Discovery", "fontFamily": "Geist", "fontSize": 15, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "phase-b-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "Multi-source paper search via OpenAlex, Semantic Scholar, and arXiv.", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF", "lineHeight": 1.5 },
+                    {
+                      "id": "phase-b-dots",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "gap": 6,
+                      "marginTop": 12,
+                      "children": [
+                        { "id": "dot-b1", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" },
+                        { "id": "dot-b2", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" },
+                        { "id": "dot-b3", "type": "ellipse", "width": 10, "height": 10, "fill": "#F59E0B" },
+                        { "id": "dot-b4", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "phase-c",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": 280,
+                  "height": "fit_content",
+                  "gap": 12,
+                  "padding": 20,
+                  "fill": "#1A1A1AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "phase-c-letter",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "#A855F7FF",
+                      "cornerRadius": 6,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "phase-c-char", "type": "text", "textGrowth": "auto", "content": "C", "fontFamily": "Playfair Display", "fontSize": 16, "fontWeight": "700", "fill": "#FFFFFFFF" }
+                      ]
+                    },
+                    { "id": "phase-c-title", "type": "text", "textGrowth": "auto", "content": "Knowledge Synthesis", "fontFamily": "Geist", "fontSize": 15, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "phase-c-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "Gap analysis, trend synthesis, and novel hypothesis generation.", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF", "lineHeight": 1.5 },
+                    {
+                      "id": "phase-c-dots",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "gap": 6,
+                      "marginTop": 12,
+                      "children": [
+                        { "id": "dot-c1", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" },
+                        { "id": "dot-c2", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "phase-d",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": 280,
+                  "height": "fit_content",
+                  "gap": 12,
+                  "padding": 20,
+                  "fill": "#1A1A1AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "phase-d-letter",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "#A855F7FF",
+                      "cornerRadius": 6,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "phase-d-char", "type": "text", "textGrowth": "auto", "content": "D", "fontFamily": "Playfair Display", "fontSize": 16, "fontWeight": "700", "fill": "#FFFFFFFF" }
+                      ]
+                    },
+                    { "id": "phase-d-title", "type": "text", "textGrowth": "auto", "content": "Experiment Design", "fontFamily": "Geist", "fontSize": 15, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "phase-d-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "Methodology design, code generation, and hardware-aware planning.", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF", "lineHeight": 1.5 },
+                    {
+                      "id": "phase-d-dots",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "gap": 6,
+                      "marginTop": 12,
+                      "children": [
+                        { "id": "dot-d1", "type": "ellipse", "width": 10, "height": 10, "fill": "#F59E0B" },
+                        { "id": "dot-d2", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" },
+                        { "id": "dot-d3", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "pipeline-grid-2",
+              "type": "frame",
+              "layout": "horizontal",
+              "width": "fill_container",
+              "gap": 16,
+              "marginTop": 16,
+              "justifyContent": "center",
+              "children": [
+                {
+                  "id": "phase-e",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": 280,
+                  "height": "fit_content",
+                  "gap": 12,
+                  "padding": 20,
+                  "fill": "#1A1A1AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "phase-e-letter",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "#A855F7FF",
+                      "cornerRadius": 6,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "phase-e-char", "type": "text", "textGrowth": "auto", "content": "E", "fontFamily": "Playfair Display", "fontSize": 16, "fontWeight": "700", "fill": "#FFFFFFFF" }
+                      ]
+                    },
+                    { "id": "phase-e-title", "type": "text", "textGrowth": "auto", "content": "Experiment Execution", "fontFamily": "Geist", "fontSize": 15, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "phase-e-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "GPU-accelerated Docker sandbox execution with iterative refinement.", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF", "lineHeight": 1.5 },
+                    {
+                      "id": "phase-e-dots",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "gap": 6,
+                      "marginTop": 12,
+                      "children": [
+                        { "id": "dot-e1", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" },
+                        { "id": "dot-e2", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "phase-f",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": 280,
+                  "height": "fit_content",
+                  "gap": 12,
+                  "padding": 20,
+                  "fill": "#1A1A1AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "phase-f-letter",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "#A855F7FF",
+                      "cornerRadius": 6,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "phase-f-char", "type": "text", "textGrowth": "auto", "content": "F", "fontFamily": "Playfair Display", "fontSize": 16, "fontWeight": "700", "fill": "#FFFFFFFF" }
+                      ]
+                    },
+                    { "id": "phase-f-title", "type": "text", "textGrowth": "auto", "content": "Analysis & Decision", "fontFamily": "Geist", "fontSize": 15, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "phase-f-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "Result analysis with pivot/refine/proceed decisions.", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF", "lineHeight": 1.5 },
+                    {
+                      "id": "phase-f-dots",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "gap": 6,
+                      "marginTop": 12,
+                      "children": [
+                        { "id": "dot-f1", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" },
+                        { "id": "dot-f2", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "phase-g",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": 280,
+                  "height": "fit_content",
+                  "gap": 12,
+                  "padding": 20,
+                  "fill": "#1A1A1AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "phase-g-letter",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "#A855F7FF",
+                      "cornerRadius": 6,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "phase-g-char", "type": "text", "textGrowth": "auto", "content": "G", "fontFamily": "Playfair Display", "fontSize": 16, "fontWeight": "700", "fill": "#FFFFFFFF" }
+                      ]
+                    },
+                    { "id": "phase-g-title", "type": "text", "textGrowth": "auto", "content": "Paper Writing", "fontFamily": "Geist", "fontSize": 15, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "phase-g-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "Structured drafting, multi-agent peer review, and iterative revision.", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF", "lineHeight": 1.5 },
+                    {
+                      "id": "phase-g-dots",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "gap": 6,
+                      "marginTop": 12,
+                      "children": [
+                        { "id": "dot-g1", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" },
+                        { "id": "dot-g2", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" },
+                        { "id": "dot-g3", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" },
+                        { "id": "dot-g4", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "phase-h",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": 280,
+                  "height": "fit_content",
+                  "gap": 12,
+                  "padding": 20,
+                  "fill": "#1A1A1AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "phase-h-letter",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "#A855F7FF",
+                      "cornerRadius": 6,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "phase-h-char", "type": "text", "textGrowth": "auto", "content": "H", "fontFamily": "Playfair Display", "fontSize": 16, "fontWeight": "700", "fill": "#FFFFFFFF" }
+                      ]
+                    },
+                    { "id": "phase-h-title", "type": "text", "textGrowth": "auto", "content": "Finalization", "fontFamily": "Geist", "fontSize": 15, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "phase-h-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "Quality gate, knowledge archival, LaTeX export, and citation verification.", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF", "lineHeight": 1.5 },
+                    {
+                      "id": "phase-h-dots",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "gap": 6,
+                      "marginTop": 12,
+                      "children": [
+                        { "id": "dot-h1", "type": "ellipse", "width": 10, "height": 10, "fill": "#F59E0B" },
+                        { "id": "dot-h2", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" },
+                        { "id": "dot-h3", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" },
+                        { "id": "dot-h4", "type": "ellipse", "width": 10, "height": 10, "fill": "#A855F7FF" }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "features-section",
+          "type": "frame",
+          "name": "Features Section",
+          "layout": "vertical",
+          "width": "fill_container",
+          "height": "fit_content",
+          "fill": "#1A1A1AFF",
+          "padding": [80, 48],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "features-title",
+              "type": "text",
+              "textGrowth": "fixed-width",
+              "width": 600,
+              "content": "Built for Serious Research",
+              "fontFamily": "Playfair Display",
+              "fontSize": 40,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "fill": "#FFFFFFFF"
+            },
+            {
+              "id": "features-subtitle",
+              "type": "text",
+              "textGrowth": "fixed-width",
+              "width": 600,
+              "content": "Every component engineered for reliability, accuracy, and publication quality.",
+              "fontFamily": "Geist",
+              "fontSize": 16,
+              "textAlign": "center",
+              "fill": "#A1A1AAFF",
+              "marginTop": 12
+            },
+            {
+              "id": "features-grid",
+              "type": "frame",
+              "layout": "horizontal",
+              "width": 1184,
+              "gap": 20,
+              "marginTop": 48,
+              "justifyContent": "center",
+              "children": [
+                {
+                  "id": "feature-1",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "gap": 16,
+                  "padding": 24,
+                  "fill": "#0A0A0AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "feat-1-icon",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 48,
+                      "height": 48,
+                      "fill": "rgba(6, 182, 212, 0.15)",
+                      "cornerRadius": 10,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "feat-1-icon-text", "type": "text", "textGrowth": "auto", "content": "⚡", "fontSize": 20 }
+                      ]
+                    },
+                    { "id": "feat-1-title", "type": "text", "textGrowth": "auto", "content": "Real Literature Search", "fontFamily": "Geist", "fontSize": 16, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "feat-1-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "Multi-source search across OpenAlex, Semantic Scholar, and arXiv with circuit breakers, rate limiting, and intelligent caching.", "fontFamily": "Geist", "fontSize": 14, "fill": "#71717AFF", "lineHeight": 1.6 }
+                  ]
+                },
+                {
+                  "id": "feature-2",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "gap": 16,
+                  "padding": 24,
+                  "fill": "#0A0A0AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "feat-2-icon",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 48,
+                      "height": 48,
+                      "fill": "rgba(16, 185, 129, 0.15)",
+                      "cornerRadius": 10,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "feat-2-icon-text", "type": "text", "textGrowth": "auto", "content": "🔬", "fontSize": 20 }
+                      ]
+                    },
+                    { "id": "feat-2-title", "type": "text", "textGrowth": "auto", "content": "Docker Sandbox + GPU", "fontFamily": "Geist", "fontSize": 16, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "feat-2-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "Experiments run in isolated Docker containers with NVIDIA GPU passthrough, network sandboxing, and automatic dependency management.", "fontFamily": "Geist", "fontSize": 14, "fill": "#71717AFF", "lineHeight": 1.6 }
+                  ]
+                },
+                {
+                  "id": "feature-3",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "gap": 16,
+                  "padding": 24,
+                  "fill": "#0A0A0AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "feat-3-icon",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 48,
+                      "height": 48,
+                      "fill": "rgba(139, 92, 246, 0.15)",
+                      "cornerRadius": 10,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "feat-3-icon-text", "type": "text", "textGrowth": "auto", "content": "👥", "fontSize": 20 }
+                      ]
+                    },
+                    { "id": "feat-3-title", "type": "text", "textGrowth": "auto", "content": "Multi-Agent Peer Review", "fontFamily": "Geist", "fontSize": 16, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "feat-3-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "Simulated conference-style peer review with multiple reviewer personas providing structured feedback for revision.", "fontFamily": "Geist", "fontSize": 14, "fill": "#71717AFF", "lineHeight": 1.6 }
+                  ]
+                },
+                {
+                  "id": "feature-4",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "gap": 16,
+                  "padding": 24,
+                  "fill": "#0A0A0AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "feat-4-icon",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 48,
+                      "height": 48,
+                      "fill": "rgba(245, 158, 11, 0.15)",
+                      "cornerRadius": 10,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "feat-4-icon-text", "type": "text", "textGrowth": "auto", "content": "🔄", "fontSize": 20 }
+                      ]
+                    },
+                    { "id": "feat-4-title", "type": "text", "textGrowth": "auto", "content": "Iterative Refinement", "fontFamily": "Geist", "fontSize": 16, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "feat-4-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "Automatic pivot/refine/proceed decisions with rollback to any previous stage based on experiment outcomes.", "fontFamily": "Geist", "fontSize": 14, "fill": "#71717AFF", "lineHeight": 1.6 }
+                  ]
+                },
+                {
+                  "id": "feature-5",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "gap": 16,
+                  "padding": 24,
+                  "fill": "#0A0A0AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "feat-5-icon",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 48,
+                      "height": 48,
+                      "fill": "rgba(6, 182, 212, 0.15)",
+                      "cornerRadius": 10,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "feat-5-icon-text", "type": "text", "textGrowth": "auto", "content": "📄", "fontSize": 20 }
+                      ]
+                    },
+                    { "id": "feat-5-title", "type": "text", "textGrowth": "auto", "content": "Conference-Ready LaTeX", "fontFamily": "Geist", "fontSize": 16, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "feat-5-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "Publication-quality LaTeX output with proper citations, experiment charts, and structured abstracts.", "fontFamily": "Geist", "fontSize": 14, "fill": "#71717AFF", "lineHeight": 1.6 }
+                  ]
+                },
+                {
+                  "id": "feature-6",
+                  "type": "frame",
+                  "layout": "vertical",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "gap": 16,
+                  "padding": 24,
+                  "fill": "#0A0A0AFF",
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "feat-6-icon",
+                      "type": "frame",
+                      "layout": "horizontal",
+                      "width": 48,
+                      "height": 48,
+                      "fill": "rgba(16, 185, 129, 0.15)",
+                      "cornerRadius": 10,
+                      "alignItems": "center",
+                      "children": [
+                        { "id": "feat-6-icon-text", "type": "text", "textGrowth": "auto", "content": "✓", "fontSize": 20 }
+                      ]
+                    },
+                    { "id": "feat-6-title", "type": "text", "textGrowth": "auto", "content": "Citation Verification", "fontFamily": "Geist", "fontSize": 16, "fontWeight": "600", "fill": "#FFFFFFFF" },
+                    { "id": "feat-6-desc", "type": "text", "textGrowth": "fixed-width", "width": "fill_container", "content": "All citations verified against CrossRef, OpenAlex, and arXiv APIs to ensure bibliography accuracy.", "fontFamily": "Geist", "fontSize": 14, "fill": "#71717AFF", "lineHeight": 1.6 }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cta-section",
+          "type": "frame",
+          "name": "CTA Section",
+          "layout": "vertical",
+          "width": "fill_container",
+          "height": "fit_content",
+          "padding": [80, 48],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "cta-title",
+              "type": "text",
+              "textGrowth": "fixed-width",
+              "width": 600,
+              "content": "Ready to Generate Your First Paper?",
+              "fontFamily": "Playfair Display",
+              "fontSize": 40,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "fill": "#FFFFFFFF"
+            },
+            {
+              "id": "cta-subtitle",
+              "type": "text",
+              "textGrowth": "fixed-width",
+              "width": 600,
+              "content": "Clone the repo, configure your LLM API key, and run your first autonomous research paper.",
+              "fontFamily": "Geist",
+              "fontSize": 16,
+              "textAlign": "center",
+              "fill": "#A1A1AAFF",
+              "marginTop": 12
+            },
+            {
+              "id": "cta-actions",
+              "type": "frame",
+              "layout": "horizontal",
+              "gap": 16,
+              "marginTop": 32,
+              "children": [
+                {
+                  "id": "cta-btn-primary",
+                  "type": "frame",
+                  "layout": "horizontal",
+                  "width": "fit_content",
+                  "height": 48,
+                  "gap": 8,
+                  "padding": [24, 20],
+                  "fill": "#A855F7FF",
+                  "cornerRadius": 9999,
+                  "alignItems": "center",
+                  "children": [
+                    { "id": "cta-btn-p-text", "type": "text", "textGrowth": "auto", "content": "Quick Start Guide", "fontFamily": "Geist", "fontSize": 15, "fontWeight": "600", "fill": "#FFFFFFFF" }
+                  ]
+                },
+                {
+                  "id": "cta-btn-secondary",
+                  "type": "frame",
+                  "layout": "horizontal",
+                  "width": "fit_content",
+                  "height": 48,
+                  "padding": [24, 20],
+                  "fill": "none",
+                  "stroke": { "align": "center", "thickness": 1.5, "fill": "#FFFFFFFF" },
+                  "cornerRadius": 9999,
+                  "alignItems": "center",
+                  "children": [
+                    { "id": "cta-btn-s-text", "type": "text", "textGrowth": "auto", "content": "View on GitHub", "fontFamily": "Geist", "fontSize": 15, "fontWeight": "600", "fill": "#FFFFFFFF" }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "footer",
+          "type": "frame",
+          "name": "Footer",
+          "layout": "vertical",
+          "width": "fill_container",
+          "height": "fit_content",
+          "gap": 16,
+          "padding": [32, 48],
+          "fill": "#0A0A0AFF",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "footer-border",
+              "type": "rectangle",
+              "width": 1184,
+              "height": 1,
+              "fill": "#1A1A1AFF"
+            },
+            {
+              "id": "footer-links",
+              "type": "frame",
+              "layout": "horizontal",
+              "gap": 32,
+              "marginTop": 16,
+              "children": [
+                { "id": "fl-1", "type": "text", "textGrowth": "auto", "content": "Home", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF" },
+                { "id": "fl-2", "type": "text", "textGrowth": "auto", "content": "Pipeline", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF" },
+                { "id": "fl-3", "type": "text", "textGrowth": "auto", "content": "Features", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF" },
+                { "id": "fl-4", "type": "text", "textGrowth": "auto", "content": "Papers", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF" },
+                { "id": "fl-5", "type": "text", "textGrowth": "auto", "content": "Get Started", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF" },
+                { "id": "fl-6", "type": "text", "textGrowth": "auto", "content": "GitHub", "fontFamily": "Geist", "fontSize": 13, "fill": "#71717AFF" }
+              ]
+            },
+            {
+              "id": "footer-text",
+              "type": "text",
+              "textGrowth": "auto",
+              "content": "AutoResearchClaw — Autonomous Research Paper Generation Pipeline",
+              "fontFamily": "Geist",
+              "fontSize": 12,
+              "fill": "#71717AFF"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
