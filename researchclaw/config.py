@@ -197,6 +197,7 @@ class LlmConfig:
     fallback_models: tuple[str, ...] = ()
     s2_api_key: str = ""
     notes: str = ""
+    timeout_sec: int = 600
     acp: AcpConfig = field(default_factory=AcpConfig)
 
 
@@ -723,6 +724,8 @@ class RCConfig:
         default_factory=QualityAssessorConfig
     )
     calendar: CalendarConfig = field(default_factory=CalendarConfig)
+    # HITL Co-Pilot System
+    hitl: object = field(default=None)  # HITLConfig (lazy import avoids circular dep)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -767,6 +770,7 @@ class RCConfig:
         copilot_data = data.get("copilot") or {}
         quality_assessor_data = data.get("quality_assessor") or {}
         calendar_data = data.get("calendar") or {}
+        hitl_data = data.get("hitl") or {}
 
         return cls(
             project=ProjectConfig(
@@ -853,6 +857,7 @@ class RCConfig:
             copilot=_parse_copilot_config(copilot_data),
             quality_assessor=_parse_quality_assessor_config(quality_assessor_data),
             calendar=_parse_calendar_config(calendar_data),
+            hitl=_parse_hitl_config(hitl_data),
         )
 
     @classmethod
@@ -966,6 +971,7 @@ def _parse_llm_config(data: dict[str, Any]) -> LlmConfig:
         fallback_models=tuple(data.get("fallback_models") or ()),
         s2_api_key=data.get("s2_api_key", ""),
         notes=data.get("notes", ""),
+        timeout_sec=_safe_int(data.get("timeout_sec"), 600),
         acp=AcpConfig(
             agent=acp_data.get("agent", "claude"),
             cwd=acp_data.get("cwd", "."),
@@ -1402,6 +1408,18 @@ def _parse_calendar_config(data: dict[str, Any]) -> CalendarConfig:
         reminder_days_before=reminder,
         auto_plan=bool(data.get("auto_plan", True)),
     )
+
+
+def _parse_hitl_config(data: dict[str, Any]) -> object:
+    """Parse HITL config section. Returns HITLConfig or None."""
+    if not data:
+        return None
+    try:
+        from researchclaw.hitl.config import HITLConfig
+
+        return HITLConfig.from_dict(data)
+    except Exception:
+        return None
 
 
 def load_config(

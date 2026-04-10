@@ -13,7 +13,6 @@ import yaml
 from researchclaw.adapters import AdapterBundle
 from researchclaw.config import RCConfig
 from researchclaw.llm.client import LLMClient
-from researchclaw.pipeline._domain import _detect_domain
 from researchclaw.pipeline._helpers import (
     StageResult,
     _build_context_preamble,
@@ -29,6 +28,47 @@ from researchclaw.pipeline.stages import Stage, StageStatus
 from researchclaw.prompts import PromptManager
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_plan_field(value: Any) -> list:
+    """Normalize a plan field (baselines, proposed_methods, ablations, datasets)
+    from any shape the LLM might produce into a flat list of items.
+
+    Handles: list[str], list[dict], dict[str, Any], str, None.
+    When the input is a dict, we preserve the full structure by converting each
+    key-value pair into a dict item (with at least a 'name' key), rather than
+    discarding either keys or values.
+    """
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value] if value.strip() else []
+    if isinstance(value, dict):
+        result = []
+        for k, v in value.items():
+            if isinstance(v, dict):
+                # e.g. {"baseline_1": {"params": ...}} -> {"name": "baseline_1", "params": ...}
+                item = dict(v)
+                item.setdefault("name", str(k))
+                result.append(item)
+            else:
+                # e.g. {"baseline_1": "description"} -> {"name": "baseline_1", "description": str(v)}
+                result.append({"name": str(k), "description": str(v) if v else ""})
+        return result
+    if isinstance(value, list):
+        return list(value)
+    return [value]
+
+
+def _plan_field_names(items: list) -> list[str]:
+    """Extract string names from a normalized plan field for display/dedup."""
+    result = []
+    for item in items:
+        if isinstance(item, dict):
+            result.append(item.get("name", str(item)))
+        else:
+            result.append(str(item))
+    return result
 
 
 def _execute_experiment_design(
@@ -275,14 +315,25 @@ def _execute_experiment_design(
     # BUG-40: Skip BenchmarkAgent for non-ML domains — it has no relevant
     # benchmarks for physics/chemistry/mathematics/etc. and would inject
     # wrong datasets (e.g., CIFAR-10 for PDE topics).
-    _ba_domain_id, _, _ = _detect_domain(
-        config.research.topic,
-        tuple(config.research.domains) if config.research.domains else (),
+    _ba_domain_profile = _domain_profile
+    if _ba_domain_profile is None:
+        try:
+            from researchclaw.domains.detector import detect_domain as _detect_domain_adv
+            _ba_domain_profile = _detect_domain_adv(
+                topic=config.research.topic,
+                hypotheses=hypotheses,
+            )
+        except Exception:  # noqa: BLE001
+            logger.debug("BenchmarkAgent domain detection unavailable", exc_info=True)
+    _ba_domain_id = (
+        _ba_domain_profile.domain_id
+        if _ba_domain_profile is not None
+        else "generic"
     )
-    _ba_domain_ok = _ba_domain_id == "ml"
+    _ba_domain_ok = _ba_domain_id.startswith("ml_")
     if not _ba_domain_ok:
         logger.info(
-            "BenchmarkAgent skipped: domain '%s' is not ML (topic: %s)",
+            "BenchmarkAgent skipped: domain profile '%s' is not an ML profile (topic: %s)",
             _ba_domain_id, config.research.topic[:80],
         )
     if (
@@ -338,19 +389,11 @@ def _execute_experiment_design(
                 plan["datasets"] = [
                     b.get("name", "Unknown") for b in _benchmark_plan.selected_benchmarks
                 ]
-                # Normalize existing baselines to list of strings
-                # BUG-35: LLM may emit baselines as dict, list of dicts,
-                # or list of strings — normalize all to list[str].
-                _baselines_from_plan = plan.get("baselines", [])
-                if isinstance(_baselines_from_plan, dict):
-                    _baselines_from_plan = list(_baselines_from_plan.keys())
-                elif isinstance(_baselines_from_plan, list):
-                    _baselines_from_plan = [
-                        item["name"] if isinstance(item, dict) else str(item)
-                        for item in _baselines_from_plan
-                    ]
-                else:
-                    _baselines_from_plan = []
+                # Normalize existing baselines — LLM may emit dict, list of
+                # dicts, or list of strings.
+                _baselines_from_plan = _plan_field_names(
+                    _normalize_plan_field(plan.get("baselines", []))
+                )
                 plan["baselines"] = [
                     bl.get("name", "Unknown") for bl in _benchmark_plan.selected_baselines
                 ] + _baselines_from_plan
@@ -390,15 +433,9 @@ def _execute_experiment_design(
     if _time_budget > 7200:
         _max_conditions = 20
 
-    _baselines = plan.get("baselines", [])
-    if isinstance(_baselines, dict):
-        _baselines = list(_baselines.values())
-    _proposed = plan.get("proposed_methods", [])
-    if isinstance(_proposed, dict):
-        _proposed = list(_proposed.values())
-    _ablations = plan.get("ablations", [])
-    if isinstance(_ablations, dict):
-        _ablations = list(_ablations.values())
+    _baselines = _normalize_plan_field(plan.get("baselines", []))
+    _proposed = _normalize_plan_field(plan.get("proposed_methods", []))
+    _ablations = _normalize_plan_field(plan.get("ablations", []))
     _total = len(_baselines) + len(_proposed) + len(_ablations)
 
     if _total > _max_conditions:
@@ -431,6 +468,57 @@ def _execute_experiment_design(
                 "Stage 9: Trimmed ablations %d → %d",
                 len(_ablations), _ablation_budget,
             )
+
+    # --- HITL: Read human guidance if available ---
+    guidance_file = stage_dir / "hitl_guidance.md"
+    if guidance_file.exists():
+        try:
+            guidance = guidance_file.read_text(encoding="utf-8").strip()
+            if guidance and llm is not None and isinstance(plan, dict):
+                logger.info("Applying HITL guidance to experiment design")
+                resp = llm.chat(
+                    [{"role": "user", "content": (
+                        f"The human researcher provided this guidance for "
+                        f"the experiment design:\n\n{guidance}\n\n"
+                        f"Current experiment plan:\n"
+                        f"```yaml\n{yaml.dump(plan, default_flow_style=False)}\n```\n\n"
+                        f"Update the YAML plan to incorporate the guidance. "
+                        f"Return ONLY the updated YAML."
+                    )}],
+                    max_tokens=4096,
+                )
+                updated = _extract_yaml_block(resp.content)
+                try:
+                    parsed_update = yaml.safe_load(updated)
+                    if isinstance(parsed_update, dict):
+                        plan = parsed_update
+                except yaml.YAMLError:
+                    pass
+        except Exception:
+            logger.debug("HITL guidance application failed (non-blocking)")
+
+    # --- HITL: Baseline Navigator data persistence ---
+    try:
+        from researchclaw.hitl.workshops.baseline import BaselineNavigator, BaselineCandidate
+
+        nav = BaselineNavigator(run_dir, llm_client=llm)
+        if isinstance(plan, dict):
+            baselines = plan.get("baselines", [])
+            if isinstance(baselines, list):
+                for b in baselines:
+                    if isinstance(b, dict):
+                        nav.baselines.append(BaselineCandidate(
+                            name=b.get("name", str(b)),
+                            description=b.get("description", ""),
+                        ))
+                    elif isinstance(b, str):
+                        nav.baselines.append(BaselineCandidate(name=b))
+            metrics = plan.get("metrics", [])
+            if isinstance(metrics, list):
+                nav.metrics = [str(m) for m in metrics]
+        nav.save()
+    except Exception:
+        pass
 
     (stage_dir / "exp_plan.yaml").write_text(
         yaml.dump(plan, default_flow_style=False, allow_unicode=True),

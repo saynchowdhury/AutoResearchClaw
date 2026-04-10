@@ -53,6 +53,76 @@ _SANDBOX_SAFE_PACKAGES = {
 
 _METACLAW_SKILLS_DIR = str(Path.home() / ".metaclaw" / "skills")
 
+# User-level custom skills directory (cross-project)
+_USER_SKILLS_DIR = Path.home() / ".researchclaw" / "skills"
+
+# Lazy-initialized skill registry (singleton for the process)
+_skill_registry: object | None = None
+
+
+def _get_skill_registry(config: object | None = None) -> object:
+    """Return the global SkillRegistry, creating it on first call.
+
+    Loads skills from (in priority order):
+    1. Built-in skills shipped with the package
+    2. User-level ``~/.researchclaw/skills/``
+    3. Project-level ``.claude/skills/``
+    4. MetaClaw cross-run skills ``~/.metaclaw/skills/``
+    5. User-configured ``config.yaml → skills.custom_dirs``
+    """
+    global _skill_registry  # noqa: PLW0603
+    if _skill_registry is not None:
+        return _skill_registry
+    try:
+        from researchclaw.skills.registry import SkillRegistry
+
+        custom_dirs: list[str] = []
+
+        # User-level skills
+        if _USER_SKILLS_DIR.is_dir():
+            custom_dirs.append(str(_USER_SKILLS_DIR))
+
+        # Project-level .claude/skills/
+        project_skills = Path(__file__).resolve().parent.parent.parent / ".claude" / "skills"
+        if project_skills.is_dir():
+            custom_dirs.append(str(project_skills))
+
+        # MetaClaw skills
+        metaclaw = Path(_METACLAW_SKILLS_DIR)
+        if metaclaw.is_dir():
+            custom_dirs.append(str(metaclaw))
+
+        # Config-specified custom dirs
+        if config is not None:
+            skills_cfg = getattr(config, "skills", None)
+            if skills_cfg:
+                for d in getattr(skills_cfg, "custom_dirs", ()):
+                    if d:
+                        custom_dirs.append(str(d))
+                for d in getattr(skills_cfg, "external_dirs", ()):
+                    if d:
+                        custom_dirs.append(str(d))
+
+        _skill_registry = SkillRegistry(
+            custom_dirs=custom_dirs,
+            auto_match=True,
+            max_skills_per_stage=getattr(
+                getattr(config, "skills", None), "max_skills_per_stage", 3
+            ) if config else 3,
+            fallback_matching=True,
+        )
+        logger.info(
+            "Skill registry initialized: %d skills from %d sources",
+            _skill_registry.count(),
+            1 + len(custom_dirs),
+        )
+    except Exception:  # noqa: BLE001
+        # Fallback: create empty registry so we never crash
+        from researchclaw.skills.registry import SkillRegistry
+        _skill_registry = SkillRegistry(builtin_dir="/dev/null")
+        logger.debug("Skill registry init failed, using empty registry")
+    return _skill_registry
+
 # --- P1-1: Topic keyword extraction for domain pre-filter ---
 _STOP_WORDS = frozenset(
     {
@@ -235,7 +305,12 @@ def _build_fallback_queries(topic: str) -> list[str]:
 def _write_stage_meta(
     stage_dir: Path, stage: Stage, run_id: str, result: "StageResult"
 ) -> None:
-    next_stage = NEXT_STAGE[stage]
+    if result.status is StageStatus.DONE:
+        next_stage = NEXT_STAGE[stage]
+    else:
+        # Failed / paused / blocked stages should point back to themselves so
+        # retry-resume tooling does not imply that the pipeline advanced.
+        next_stage = stage
     meta = {
         "stage_id": f"{int(stage):02d}-{stage.name.lower()}",
         "run_id": run_id,
@@ -282,6 +357,7 @@ def _ensure_sandbox_deps(code: str, python_path: str) -> list[str]:
             r = _sp.run(
                 [str(py_path), "-c", f"import {pkg}"],
                 capture_output=True, timeout=10,
+                encoding="utf-8", errors="replace",
             )
             if r.returncode != 0:
                 pip_name = "scikit-learn" if pkg == "sklearn" else pkg
@@ -289,6 +365,7 @@ def _ensure_sandbox_deps(code: str, python_path: str) -> list[str]:
                 _sp.run(
                     [str(py_path), "-m", "pip", "install", pip_name, "--quiet"],
                     capture_output=True, timeout=120,
+                    encoding="utf-8", errors="replace",
                 )
                 installed.append(pip_name)
         except Exception as exc:
@@ -334,7 +411,11 @@ def _read_prior_artifact(run_dir: Path, filename: str) -> str | None:
     for stage_subdir in sorted(run_dir.glob("stage-*"), key=_stage_sort_key, reverse=True):
         candidate = stage_subdir / filename
         if candidate.is_file():
-            return candidate.read_text(encoding="utf-8")
+            try:
+                return candidate.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError) as exc:
+                logger.warning("Cannot read %s: %s — skipping", candidate, exc)
+                continue
         if filename.endswith("/") and (stage_subdir / filename.rstrip("/")).is_dir():
             return str(stage_subdir / filename.rstrip("/"))
     return None
@@ -427,6 +508,9 @@ def _extract_yaml_block(text: str) -> str:
     return text.strip()
 
 
+_JSON_FENCE_PATTERN = re.compile(r"```(?:json)?\s*\n(.*?)```", re.DOTALL)
+
+
 def _safe_json_loads(text: str, default: Any) -> Any:
     """Parse JSON from text, handling noisy ACP output.
 
@@ -443,8 +527,7 @@ def _safe_json_loads(text: str, default: Any) -> Any:
         pass
 
     # Strategy 2: Find JSON in markdown code fences
-    fence_pattern = re.compile(r"```(?:json)?\s*\n(.*?)```", re.DOTALL)
-    for match in fence_pattern.finditer(text):
+    for match in _JSON_FENCE_PATTERN.finditer(text):
         candidate = match.group(1).strip()
         try:
             return json.loads(candidate)
@@ -505,6 +588,30 @@ def _extract_code_block(content: str) -> str:
     return content.strip()
 
 
+_MULTI_FILE_PATTERNS = [
+    # Original: ```filename:xxx.py or ```python filename:xxx.py
+    re.compile(
+        r"```(?:python\s+)?filename:(\S+)\s*\n(.*?)```",
+        flags=re.DOTALL,
+    ),
+    # Variation: ``` filename:xxx.py (space after backticks)
+    re.compile(
+        r"```\s+filename:(\S+)\s*\n(.*?)```",
+        flags=re.DOTALL,
+    ),
+    # Variation: ```python\nfilename:xxx.py (filename on next line)
+    re.compile(
+        r"```(?:python)?\s*\nfilename:(\S+)\s*\n(.*?)```",
+        flags=re.DOTALL,
+    ),
+    # Variation: ```python\n# filename: xxx.py (comment marker)
+    re.compile(
+        r"```(?:python)?\s*\n#\s*(?:FILE|filename)\s*:\s*(\S+\.py)\s*\n(.*?)```",
+        flags=re.DOTALL,
+    ),
+]
+
+
 def _extract_multi_file_blocks(content: str) -> dict[str, str]:
     """Parse LLM response containing multiple files with filename markers.
 
@@ -532,31 +639,8 @@ def _extract_multi_file_blocks(content: str) -> dict[str, str]:
     Returns a dict mapping filename → code content.
     """
     # R13-2: Multiple patterns to handle LLM format variations
-    patterns = [
-        # Original: ```filename:xxx.py or ```python filename:xxx.py
-        re.compile(
-            r"```(?:python\s+)?filename:(\S+)\s*\n(.*?)```",
-            flags=re.DOTALL,
-        ),
-        # Variation: ``` filename:xxx.py (space after backticks)
-        re.compile(
-            r"```\s+filename:(\S+)\s*\n(.*?)```",
-            flags=re.DOTALL,
-        ),
-        # Variation: ```python\nfilename:xxx.py (filename on next line)
-        re.compile(
-            r"```(?:python)?\s*\nfilename:(\S+)\s*\n(.*?)```",
-            flags=re.DOTALL,
-        ),
-        # Variation: ```python\n# filename: xxx.py (comment marker)
-        re.compile(
-            r"```(?:python)?\s*\n#\s*(?:FILE|filename)\s*:\s*(\S+\.py)\s*\n(.*?)```",
-            flags=re.DOTALL,
-        ),
-    ]
-
     matches: list[tuple[str, str]] = []
-    for pattern in patterns:
+    for pattern in _MULTI_FILE_PATTERNS:
         matches = pattern.findall(content)
         if matches:
             break
@@ -605,6 +689,12 @@ def _write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
             handle.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
+# BUG-173: regex for condition=name metric=value format
+_CONDITION_RE = re.compile(
+    r"^condition=(\S+)\s+metric=([0-9eE.+-]+)\s*$"
+)
+
+
 def _parse_metrics_from_stdout(stdout: str) -> dict[str, Any]:
     """Parse metric lines from experiment stdout.
 
@@ -617,10 +707,6 @@ def _parse_metrics_from_stdout(stdout: str) -> dict[str, Any]:
     Returns a flat dict of metric_name -> value.
     Filters out log/status lines using :func:`is_metric_name`.
     """
-    # BUG-173: regex for condition=name metric=value format
-    _CONDITION_RE = re.compile(
-        r"^condition=(\S+)\s+metric=([0-9eE.+-]+)\s*$"
-    )
     metrics: dict[str, Any] = {}
     for line in stdout.splitlines():
         line = line.strip()
@@ -686,17 +772,26 @@ def _chat_with_prompt(
 
     messages = [{"role": "user", "content": user}]
     last_exc: Exception | None = None
+    _effective_json_mode = json_mode
     for attempt in range(1 + retries):
         try:
-            if json_mode and max_tokens is not None:
+            if _effective_json_mode and max_tokens is not None:
                 return llm.chat(messages, system=system, json_mode=True, max_tokens=max_tokens, strip_thinking=strip_thinking)
-            if json_mode:
+            if _effective_json_mode:
                 return llm.chat(messages, system=system, json_mode=True, strip_thinking=strip_thinking)
             if max_tokens is not None:
                 return llm.chat(messages, system=system, max_tokens=max_tokens, strip_thinking=strip_thinking)
             return llm.chat(messages, system=system, strip_thinking=strip_thinking)
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
+            # Auto-disable json_mode on HTTP 400 — likely provider incompatibility
+            _err_str = str(exc)
+            if _effective_json_mode and "400" in _err_str:
+                logger.warning(
+                    "HTTP 400 with json_mode=True — disabling json_mode for retry "
+                    "(provider may not support response_format)."
+                )
+                _effective_json_mode = False
             if attempt < retries:
                 delay = 2 ** (attempt + 1)
                 logger.warning(
@@ -712,25 +807,54 @@ def _chat_with_prompt(
     raise last_exc  # type: ignore[misc]  # unreachable but satisfies type checker
 
 
-def _get_evolution_overlay(run_dir: Path | None, stage_name: str) -> str:
-    """Load evolution lessons + MetaClaw skills for prompt injection.
+def _get_evolution_overlay(
+    run_dir: Path | None,
+    stage_name: str,
+    *,
+    config: object | None = None,
+    topic: str = "",
+) -> str:
+    """Load evolution lessons + matched skills for prompt injection.
 
-    Combines intra-run lessons (from current run's evolution dir) with
-    cross-run arc-* skills (from ~/.metaclaw/skills/).
+    Combines three sources:
+    1. Intra-run lessons (from current run's evolution dir)
+    2. Cross-run MetaClaw skills (from ~/.metaclaw/skills/)
+    3. Matched skills from the SkillRegistry (builtin + user + external)
+
+    The SkillRegistry automatically matches skills to the current stage
+    using trigger keywords and stage applicability metadata.
 
     Returns empty string if no relevant lessons/skills exist or on any error.
     """
-    if run_dir is None:
-        return ""
-    try:
-        from researchclaw.evolution import EvolutionStore
+    parts: list[str] = []
 
-        store = EvolutionStore(run_dir / "evolution")
-        return store.build_overlay(
-            stage_name, max_lessons=5, skills_dir=_METACLAW_SKILLS_DIR
-        )
+    # --- Section 1: Evolution lessons + MetaClaw arc-* skills ---
+    if run_dir is not None:
+        try:
+            from researchclaw.evolution import EvolutionStore
+
+            store = EvolutionStore(run_dir / "evolution")
+            evo_overlay = store.build_overlay(
+                stage_name, max_lessons=5, skills_dir=_METACLAW_SKILLS_DIR
+            )
+            if evo_overlay:
+                parts.append(evo_overlay)
+        except Exception:  # noqa: BLE001
+            pass
+
+    # --- Section 2: Matched skills from SkillRegistry ---
+    try:
+        registry = _get_skill_registry(config)
+        context = f"{stage_name} {topic}".strip()
+        matched = registry.match(context, stage_name)
+        if matched:
+            skills_text = registry.export_for_prompt(matched, max_chars=4000)
+            if skills_text:
+                parts.append(f"\n## Matched Domain Skills\n{skills_text}")
     except Exception:  # noqa: BLE001
-        return ""
+        pass
+
+    return "\n".join(parts)
 
 
 # ---------------------------------------------------------------------------
@@ -979,6 +1103,17 @@ def _build_context_preamble(
                     parts.append(
                         f"\n### LaTeX Table\n```latex\n{summary['latex_table']}\n```"
                     )
+    # --- HITL guidance injection ---
+    for stage_dir in sorted(run_dir.glob("stage-*/hitl_guidance.md")):
+        try:
+            guidance = stage_dir.read_text(encoding="utf-8").strip()
+            if guidance:
+                stage_name = stage_dir.parent.name
+                parts.append(
+                    f"\n### Human Guidance ({stage_name})\n{guidance[:1000]}"
+                )
+        except (OSError, UnicodeDecodeError):
+            pass
     return "\n".join(parts)
 
 
@@ -1043,6 +1178,9 @@ def _topic_constraint_block(topic: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+_NAN_RE = re.compile(r"\bnan\b", re.IGNORECASE)
+
+
 def _detect_runtime_issues(sandbox_result: Any) -> str:
     """Detect NaN/Inf in metrics and extract stderr warnings from sandbox run.
 
@@ -1065,12 +1203,11 @@ def _detect_runtime_issues(sandbox_result: Any) -> str:
 
     # Check stdout for NaN values (word boundary to avoid matching "Nanotechnology" etc.)
     stdout = getattr(sandbox_result, "stdout", "") or ""
-    _nan_re = re.compile(r"\bnan\b", re.IGNORECASE)
-    if _nan_re.search(stdout):
+    if _NAN_RE.search(stdout):
         nan_lines = [
             line.strip()
             for line in stdout.splitlines()
-            if _nan_re.search(line)
+            if _NAN_RE.search(line)
         ]
         if nan_lines:
             issues.append(

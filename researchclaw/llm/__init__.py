@@ -30,7 +30,10 @@ PROVIDER_PRESETS = {
         "base_url": "https://api.novita.ai/openai",
     },
     "minimax": {
-        "base_url": "https://api.minimax.io/v1",
+        "base_url": "https://api.minimaxi.com/v1",
+    },
+    "gemini": {
+        "base_url": "https://generativelanguage.googleapis.com/v1beta",
     },
     "openai-compatible": {
         "base_url": None,  # Use user-provided base_url
@@ -49,6 +52,7 @@ def create_llm_client(config: RCConfig) -> LLMClient | ACPClient:
     - ``"deepseek"`` → :class:`LLMClient` with DeepSeek base URL
     - ``"novita"`` → :class:`LLMClient` with Novita AI base URL
     - ``"minimax"`` → :class:`LLMClient` with MiniMax base URL
+    - ``"gemini"`` → :class:`LLMClient` with Gemini Native Adapter
     - ``"openai-compatible"`` (default) → :class:`LLMClient` with custom base_url
 
     OpenRouter is fully compatible with the OpenAI API format, making it

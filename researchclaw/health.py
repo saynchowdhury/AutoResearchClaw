@@ -161,7 +161,7 @@ def _is_timeout(exc: BaseException) -> bool:
     return isinstance(reason, (TimeoutError, socket.timeout))
 
 
-def check_llm_connectivity(base_url: str) -> CheckResult:
+def check_llm_connectivity(base_url: str, api_key: str = "") -> CheckResult:
     if not base_url.strip():
         return CheckResult(
             name="llm_connectivity",
@@ -171,7 +171,10 @@ def check_llm_connectivity(base_url: str) -> CheckResult:
         )
 
     url = _models_url(base_url)
-    req = urllib.request.Request(url, method="HEAD")
+    headers: dict[str, str] = {}
+    if api_key.strip():
+        headers["Authorization"] = f"Bearer {api_key}"
+    req = urllib.request.Request(url, headers=headers, method="HEAD")
 
     try:
         with urllib.request.urlopen(req, timeout=5):
@@ -181,42 +184,37 @@ def check_llm_connectivity(base_url: str) -> CheckResult:
                 detail=f"Reachable: {url}",
             )
     except urllib.error.HTTPError as exc:
-        if exc.code == 405:
-            try:
-                with urllib.request.urlopen(url, timeout=5):
-                    return CheckResult(
-                        name="llm_connectivity",
-                        status="pass",
-                        detail=f"Reachable: {url}",
-                    )
-            except urllib.error.HTTPError as get_exc:
-                return CheckResult(
-                    name="llm_connectivity",
-                    status="fail",
-                    detail=f"LLM endpoint HTTP {get_exc.code}",
-                    fix="Check llm.base_url and provider status",
-                )
-            except urllib.error.URLError as get_exc:
-                if _is_timeout(get_exc):
-                    return CheckResult(
-                        name="llm_connectivity",
-                        status="fail",
-                        detail="LLM endpoint unreachable",
-                        fix="Verify endpoint URL and network connectivity",
-                    )
-                return CheckResult(
-                    name="llm_connectivity",
-                    status="fail",
-                    detail=f"LLM connectivity error: {get_exc.reason}",
-                    fix="Verify endpoint URL and network connectivity",
-                )
-            except TimeoutError:
-                return CheckResult(
-                    name="llm_connectivity",
-                    status="fail",
-                    detail="LLM endpoint unreachable",
-                    fix="Verify endpoint URL and network connectivity",
-                )
+        if exc.code in (404, 405):
+            # /models not available (e.g. MiniMax, some proxies) — try
+            # /chat/completions with HEAD/GET as a fallback probe.
+            fallback_url = f"{base_url.rstrip('/')}/chat/completions"
+            probe_urls = [url, fallback_url] if exc.code == 405 else [fallback_url]
+            for probe in probe_urls:
+                try:
+                    get_req = urllib.request.Request(probe, headers=headers)
+                    with urllib.request.urlopen(get_req, timeout=5):
+                        return CheckResult(
+                            name="llm_connectivity",
+                            status="pass",
+                            detail=f"Reachable: {probe}",
+                        )
+                except urllib.error.HTTPError as get_exc:
+                    # 401/422/405 = endpoint exists but needs auth/body — still reachable
+                    if get_exc.code in (401, 405, 415, 422):
+                        return CheckResult(
+                            name="llm_connectivity",
+                            status="pass",
+                            detail=f"Reachable (HTTP {get_exc.code}): {probe}",
+                        )
+                    continue
+                except urllib.error.URLError:
+                    continue
+            return CheckResult(
+                name="llm_connectivity",
+                status="fail",
+                detail=f"LLM endpoint HTTP {exc.code}",
+                fix="Check llm.base_url and provider status",
+            )
 
         return CheckResult(
             name="llm_connectivity",
@@ -592,7 +590,7 @@ def run_doctor(config_path: str | Path) -> DoctorReport:
     if provider == "acp":
         checks.append(check_acp_agent(acp_agent_command))
     else:
-        checks.append(check_llm_connectivity(base_url))
+        checks.append(check_llm_connectivity(base_url, api_key))
         checks.append(check_api_key_valid(base_url, api_key))
         checks.append(check_model_chain(base_url, api_key, model, fallback_models))
     checks.append(check_sandbox_python(sandbox_python_path))

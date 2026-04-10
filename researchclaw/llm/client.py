@@ -31,6 +31,7 @@ _NEW_PARAM_MODELS = frozenset(
         "gpt-5",
         "gpt-5.1",
         "gpt-5.2",
+        "gpt-5.3",
         "gpt-5.4",
     }
 )
@@ -47,6 +48,8 @@ _DEFAULT_USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 )
+
+_MAX_BACKOFF_SEC = 300  # 5-minute ceiling for retry delays
 
 
 @dataclass
@@ -94,6 +97,7 @@ class LLMClient:
         self.config = config
         self._model_chain = [config.primary_model] + list(config.fallback_models)
         self._anthropic = None  # Will be set by from_rc_config if needed
+        self._gemini = None  # Will be set by from_rc_config if needed
 
     @staticmethod
     def _normalize_wire_api(wire_api: str) -> str:
@@ -159,6 +163,7 @@ class LLMClient:
             fallback_models=list(rc_config.llm.fallback_models or []),
             fallback_url=fallback_url,
             fallback_api_key=fallback_api_key,
+            timeout_sec=getattr(rc_config.llm, "timeout_sec", 600),
         )
         client = cls(config)
 
@@ -168,6 +173,12 @@ class LLMClient:
             from .anthropic_adapter import AnthropicAdapter
 
             client._anthropic = AnthropicAdapter(
+                original_base_url, original_api_key, config.timeout_sec
+            )
+        elif provider == "gemini":
+            from .gemini_adapter import GeminiAdapter
+
+            client._gemini = GeminiAdapter(
                 original_base_url, original_api_key, config.timeout_sec
             )
         return client
@@ -327,7 +338,10 @@ class LLMClient:
                 # Retryable: 429 (rate limit), transient 400, 500, 502, 503, 504,
                 # 529 (Anthropic overloaded)
                 if status in (400, 429, 500, 502, 503, 504, 529):
-                    delay = self.config.retry_base_delay * (2**attempt)
+                    delay = min(
+                        self.config.retry_base_delay * (2**attempt),
+                        _MAX_BACKOFF_SEC,
+                    )
                     # Add jitter
                     import random
 
@@ -346,7 +360,25 @@ class LLMClient:
                 raise  # Other HTTP errors
             except urllib.error.URLError:
                 if attempt < self.config.max_retries - 1:
+                    delay = min(
+                        self.config.retry_base_delay * (2**attempt),
+                        _MAX_BACKOFF_SEC,
+                    )
+                    time.sleep(delay)
+                    continue
+                raise
+            except (TimeoutError, OSError) as exc:
+                # Covers TimeoutError, ConnectionResetError, IncompleteRead, etc.
+                if attempt < self.config.max_retries - 1:
                     delay = self.config.retry_base_delay * (2**attempt)
+                    logger.info(
+                        "Retry %d/%d for %s (%s). Waiting %.1fs.",
+                        attempt + 1,
+                        self.config.max_retries,
+                        model,
+                        type(exc).__name__,
+                        delay,
+                    )
                     time.sleep(delay)
                     continue
                 raise
@@ -371,6 +403,10 @@ class LLMClient:
             data = self._anthropic.chat_completion(
                 model, messages, max_tokens, temperature, json_mode
             )
+        elif self._gemini:
+            data = self._gemini.chat_completion(
+                model, messages, max_tokens, temperature, json_mode
+            )
         else:
             # Original OpenAI logic
             # Copy messages to avoid mutating the caller's list (important for
@@ -380,7 +416,7 @@ class LLMClient:
 
             # MiniMax API requires temperature in [0, 1.0]
             _temp = temperature
-            if "api.minimax.io" in self.config.base_url:
+            if "api.minimaxi.com" in self.config.base_url or "api.minimax.io" in self.config.base_url:
                 _temp = max(0.0, min(_temp, 1.0))
 
             if self._normalize_wire_api(self.config.wire_api) == "responses":
@@ -401,13 +437,29 @@ class LLMClient:
                     body["max_tokens"] = max_tokens
 
             if json_mode:
-                # Many OpenAI-compatible proxies serving Claude models don't
-                # support the response_format parameter and return HTTP 400.
-                # Fall back to a system-prompt injection for non-OpenAI models.
-                if (
-                    model.startswith("claude")
+                # Many OpenAI-compatible providers don't support the
+                # response_format parameter and return HTTP 400.
+                # Fall back to system-prompt injection for known-incompatible
+                # models (Claude, DeepSeek, Qwen, etc.) and the responses API.
+                _model_lower = model.lower()
+                _no_response_format = (
+                    _model_lower.startswith("claude")
+                    or _model_lower.startswith("deepseek")
+                    or _model_lower.startswith("qwen")
+                    or _model_lower.startswith("yi-")
+                    or _model_lower.startswith("glm")
+                    or _model_lower.startswith("moonshot")
+                    or _model_lower.startswith("minimax")
+                    or _model_lower.startswith("doubao")
+                    or _model_lower.startswith("abab")
+                    or _model_lower.startswith("hunyuan")
+                    or _model_lower.startswith("ernie")
+                    or _model_lower.startswith("spark")
+                    or _model_lower.startswith("gemma")
+                    or _model_lower.startswith("apple")
                     or self._normalize_wire_api(self.config.wire_api) == "responses"
-                ):
+                )
+                if _no_response_format:
                     _json_hint = (
                         "You MUST respond with valid JSON only. "
                         "Do not include any text outside the JSON object."
@@ -549,10 +601,15 @@ class LLMClient:
         self, data: dict[str, Any], model: str
     ) -> LLMResponse:
         output_items = data.get("output")
-        if not isinstance(output_items, list) or not output_items:
+        if not isinstance(output_items, list):
             raise ValueError(
                 f"Malformed responses API payload: missing output. Got: {data}"
             )
+        if not output_items:
+            # Empty output list — API returned no content (e.g. reasoning-only
+            # response, empty completion).  Return empty response instead of
+            # crashing so the model-fallback loop can try the next model.
+            return LLMResponse(content="", model=model)
 
         chunks: list[str] = []
         finish_reason = str(data.get("status", "") or "")
